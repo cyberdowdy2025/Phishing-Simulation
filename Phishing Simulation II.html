@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Phishing Arcade – Medium/Hard Simulation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050716;
+      --panel: #0b0f25;
+      --accent: #33f1ff;
+      --accent2: #ff4f9e;
+      --accent3: #6bff92;
+      --text: #eef5ff;
+      --muted: #939dcb;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, #181f4d 0, #050716 55%),
+        repeating-linear-gradient(
+          to right,
+          rgba(51, 241, 255, 0.05),
+          rgba(51, 241, 255, 0.05) 1px,
+          transparent 1px,
+          transparent 24px
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          rgba(51, 241, 255, 0.05),
+          rgba(51, 241, 255, 0.05) 1px,
+          transparent 1px,
+          transparent 24px
+        );
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 18px 10px 28px;
+    }
+    .shell {
+      width: 100%;
+      max-width: 960px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+    .title-block h1 {
+      font-size: 1.4rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chip {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 10px rgba(51, 241, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 20%, #fff 0, var(--accent) 40%, #020617 100%);
+      font-size: 1.1rem;
+    }
+    .subtitle {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 2px;
+      max-width: 540px;
+    }
+    .summary {
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255,255,255,0.25);
+      text-align: right;
+    }
+    .summary span {
+      color: var(--accent);
+    }
+    .hud {
+      background: radial-gradient(circle at top left, #1a2558 0, #070d23 60%);
+      border-radius: 16px;
+      padding: 7px 10px;
+      border: 1px solid rgba(51, 241, 255, 0.6);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.7),
+        0 18px 42px rgba(0,0,0,0.85);
+    }
+    .hud-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.78rem;
+      align-items: center;
+    }
+    .pill {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: var(--muted);
+    }
+    .pill strong {
+      color: var(--accent3);
+    }
+    .pill.danger strong {
+      color: #ff7b7b;
+    }
+    .rank-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.25);
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+    .rank-pill span {
+      color: var(--accent2);
+      font-weight: 600;
+    }
+    .main-panel {
+      background: radial-gradient(circle at top, #151b39 0, #050716 55%);
+      border-radius: 16px;
+      border: 1px solid rgba(51,241,255,0.50);
+      padding: 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.1fr);
+      gap: 10px;
+    }
+    @media (max-width: 780px) {
+      .main-panel {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .scenario-card {
+      background: rgba(0,0,0,0.6);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.20);
+      padding: 9px 10px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .level-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .email-box {
+      border-radius: 10px;
+      padding: 7px 9px;
+      background: radial-gradient(circle at top left, #202b5e 0, #050814 65%);
+      border: 1px solid rgba(51, 241, 255, 0.5);
+      font-size: 0.78rem;
+      line-height: 1.3;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    .email-header {
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      padding-bottom: 4px;
+      margin-bottom: 4px;
+    }
+    .email-header div {
+      margin-bottom: 2px;
+    }
+    .logo-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      border: 1px solid rgba(255,255,255,0.35);
+      margin-bottom: 4px;
+      color: var(--accent);
+    }
+    .email-body p {
+      margin-bottom: 4px;
+    }
+    .email-link {
+      color: var(--accent);
+      font-family: "Fira Code", monospace;
+      font-size: 0.72rem;
+      word-wrap: break-word;
+    }
+    .question {
+      font-size: 0.86rem;
+      margin-top: 3px;
+    }
+    .button-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .choice-btn {
+      flex: 1;
+      min-width: 130px;
+      text-align: center;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(0,0,0,0.7);
+      color: var(--text);
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+    }
+    .choice-btn.safe {
+      border-color: var(--accent3);
+    }
+    .choice-btn.phish {
+      border-color: var(--accent2);
+    }
+    .choice-btn:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    .feedback {
+      font-size: 0.8rem;
+      margin-top: 4px;
+      min-height: 18px;
+    }
+    .feedback.ok {
+      color: var(--accent3);
+    }
+    .feedback.bad {
+      color: var(--accent2);
+    }
+    .log-panel {
+      background: rgba(0,0,0,0.65);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 9px 10px 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .log-panel h3 {
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .log-messages {
+      max-height: 210px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .log-entry {
+      margin-bottom: 3px;
+    }
+    .log-entry strong {
+      color: var(--accent3);
+    }
+    .log-entry.bad strong {
+      color: #ff9bb9;
+    }
+    .log-entry.code {
+      font-family: "Fira Code", monospace;
+      font-size: 0.72rem;
+      color: var(--accent);
+    }
+    .tip-box {
+      margin-top: 4px;
+      padding: 6px 7px;
+      border-radius: 8px;
+      background: rgba(5,12,36,0.9);
+      border: 1px dashed rgba(255,255,255,0.18);
+      font-size: 0.74rem;
+    }
+    .btn-small {
+      margin-top: 5px;
+      align-self: flex-start;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(0,0,0,0.7);
+      color: var(--text);
+      padding: 4px 9px;
+      font-size: 0.74rem;
+      cursor: pointer;
+    }
+    .btn-small:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    footer {
+      margin-top: 8px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-align: right;
+    }
+    footer span {
+      color: var(--accent);
+    }
+    /* Overlays */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(10,16,50,0.98) 0, rgba(2,3,12,0.98) 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+    }
+    .overlay.hidden {
+      display: none;
+    }
+    .overlay-card {
+      width: 95%;
+      max-width: 420px;
+      background: rgba(5,8,25,0.97);
+      border-radius: 18px;
+      border: 1px solid rgba(51,241,255,0.8);
+      padding: 18px 18px 20px;
+      text-align: center;
+      box-shadow:
+        0 0 18px rgba(51,241,255,0.9),
+        0 22px 50px rgba(0,0,0,0.85);
+    }
+    .overlay-card h2 {
+      font-size: 1.2rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .overlay-card p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .overlay-stats {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .overlay-stats strong {
+      color: var(--accent3);
+    }
+    .overlay-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      color: #020512;
+      box-shadow: 0 0 14px rgba(51,241,255,0.9);
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="title-block">
+        <h1><span class="chip">🎯</span> Phishing Arcade</h1>
+        <p class="subtitle">
+          8 real-world style messages. Decide if each one is <strong>PHISHING</strong> or <strong>LEGIT</strong>.
+          Medium–hard difficulty: look closely at URLs, sender addresses, and what they’re asking you to do.
+        </p>
+      </div>
+      <div class="summary">
+        Levels: <span>8</span> • Lives: <span>3</span><br />
+        Mode: <span>Medium–Hard</span> • Theme: <span>Email, SMS, QR, Job Offers</span>
+      </div>
+    </header>
+
+    <section class="hud">
+      <div class="hud-group">
+        <div class="pill">
+          Level <strong id="ui-level">1</strong> / <span id="ui-max-level">8</span>
+        </div>
+        <div class="pill">
+          Score <strong id="ui-score">0</strong>
+        </div>
+        <div class="pill danger">
+          Lives <strong id="ui-lives">3</strong>
+        </div>
+      </div>
+      <div class="hud-group">
+        <div class="rank-pill">
+          Rank: <span id="ui-rank">New Recruit</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="main-panel">
+      <div class="scenario-card">
+        <div class="level-label" id="ui-level-title">Level 1 – Read the message carefully</div>
+        <div class="email-box">
+          <div class="email-header">
+            <div class="logo-tag" id="ui-logo-tag">[Brand Logo]</div>
+            <div id="ui-from"></div>
+            <div id="ui-subject"></div>
+          </div>
+          <div class="email-body" id="ui-body"></div>
+        </div>
+        <div class="question" id="ui-question">
+          Is this message phishing or legitimate?
+        </div>
+        <div class="button-row">
+          <button class="choice-btn phish" id="btn-phish">Phishing</button>
+          <button class="choice-btn safe" id="btn-legit">Legit</button>
+        </div>
+        <div class="feedback" id="ui-feedback"></div>
+      </div>
+
+      <aside class="log-panel">
+        <h3>Scan Log</h3>
+        <div class="log-messages" id="log-messages"></div>
+        <div class="tip-box">
+          Quick red-flag checklist:<br/>
+          • Weird or extra URL before/after the brand name?<br/>
+          • Asking for passwords, bank info, or to “verify” through a link?<br/>
+          • Threats like “2 hours left” or “account will be locked”?<br/>
+          • Sender email slightly misspelled?<br/>
+        </div>
+        <button class="btn-small" id="btn-reset">🔁 Reset Arcade</button>
+      </aside>
+    </section>
+
+    <footer>
+      Cyber Training Simulation • <span>Trust your instincts, then verify the details.</span>
+    </footer>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div class="overlay hidden" id="overlay-gameover">
+    <div class="overlay-card">
+      <h2>System Breached</h2>
+      <p>You ran out of lives. Too many phishing attempts slipped through.</p>
+      <div class="overlay-stats" id="gameover-stats"></div>
+      <button class="overlay-btn" id="btn-restart">Try Again</button>
+    </div>
+  </div>
+
+  <!-- Win Overlay -->
+  <div class="overlay hidden" id="overlay-win">
+    <div class="overlay-card">
+      <h2>Network Secured</h2>
+      <p>You completed all 8 scenarios. Nice work reading the details.</p>
+      <div class="overlay-stats" id="win-stats"></div>
+      <button class="overlay-btn" id="btn-replay">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------
+    // GAME DATA – 8 SCENARIOS
+    // -------------------------------
+    const scenarios = [
+      {
+        brandTag: "[FAKE Microsoft 365 logo]",
+        from: "Microsoft Security Team <security-noreply@micros0ft-security.com>",
+        subject: "Action required: Multi-Factor Authentication has been disabled",
+        body: `
+<p>Dear user,</p>
+<p>Due to a recent security policy update, your multi-factor authentication (MFA) has been temporarily <strong>disabled</strong> to prevent unauthorized access attempts.</p>
+<p>To keep your account protected, you must re-enable MFA within <strong>24 hours</strong>, or your Microsoft 365 account may be restricted.</p>
+<p>Please click the secure link below to restore your protection:</p>
+<p class="email-link">hxxps://account-microsoft365-verify[.]com/mfa-reset</p>
+<p>If you recently changed your password, you can safely ignore this message.</p>
+<p>Sincerely,<br/>Microsoft Security Team</p>
+        `,
+        isPhish: true,
+        explanation: "The sender address and link domain are suspicious. Real MFA changes should be done by going directly to the official Microsoft 365 portal, not through a look-alike domain."
+      },
+      {
+        brandTag: "[Bank Logo – Chase style]",
+        from: "CHASE ALERT (SMS)",
+        subject: "Suspicious charge detected on your debit card",
+        body: `
+<p><strong>Text message:</strong></p>
+<p>CHASE ALERT: Suspicious charge of $987.22 detected on your debit card ending in *6134 at AMAZON. If this is NOT you, call 1-800-555-9423 IMMEDIATELY or your account will be locked.</p>
+        `,
+        isPhish: true,
+        explanation: "Even without a link, this can be phishing. Attackers can trick you into calling a fake support number to steal account details. You should call the official number on the back of your card or log in using the official app."
+      },
+      {
+        brandTag: "[FAKE PayPal logo]",
+        from: "PayPal Support <service@paypaI.com>",
+        subject: "Case ID: #PP-483920 – Unauthorized Transaction Approved",
+        body: `
+<p>Hello Customer,</p>
+<p>We are contacting you regarding a recent transaction that appears to be <strong>unauthorized</strong> on your PayPal account:</p>
+<ul>
+  <li>Amount: <strong>$624.17</strong></li>
+  <li>Merchant: CryptoWallet Pro</li>
+  <li>Date: 08:41 AM (EST)</li>
+</ul>
+<p>If you do <strong>not</strong> recognize this transaction, you must dispute it within the next <strong>2 hours</strong> or it will be permanently processed.</p>
+<p>Please use the secure link below to log in and cancel this payment:</p>
+<p class="email-link">hxxps://www.paypal-security-center[.]io/login</p>
+<p>For your safety, do not log in from the official app until this case is resolved.</p>
+<p>Thank you,<br/>PayPal Billing Department</p>
+        `,
+        isPhish: true,
+        explanation: "The domain is not the real PayPal domain, and the sender address uses a fake 'paypaI' with an I. Telling you NOT to use the official app is another red flag."
+      },
+      {
+        brandTag: "[Google Drive icon]",
+        from: "IT Helpdesk <it.support@sch00ltech.org>",
+        subject: "New document shared with you: Staff Password Policy Update",
+        body: `
+<p>Google Drive: <strong>Staff_Passwords_Update_2025.xlsx</strong> has been shared with you.</p>
+<p>Message from IT Helpdesk:</p>
+<blockquote>
+Due to multiple unauthorized login attempts, all staff members must review the attached sheet and <strong>confirm their existing passwords</strong> in the spreadsheet. This is required to avoid automatic account deactivation.
+</blockquote>
+<p class="email-link">hxxps://drive-googIe[.]com/secure/share=staff-passwords</p>
+        `,
+        isPhish: true,
+        explanation: "No legitimate IT department will ask staff to type their passwords into a spreadsheet. The domain 'drive-googIe' is wrong (capital I). This is a credential harvesting attempt."
+      },
+      {
+        brandTag: "[Android / Google Play logo]",
+        from: "System Update (Push Notification)",
+        subject: "CRITICAL ANDROID UPDATE – Required",
+        body: `
+<p><strong>Notification:</strong></p>
+<p>CRITICAL ANDROID UPDATE – Required</p>
+<p>Tap to install the latest <strong>Google Play Security Patch</strong>. Devices that do not install this update may experience data loss and exposure of photos and messages.</p>
+<p>Update link:</p>
+<p class="email-link">hxxps://android-secure-update-apps[.]net/apk/download</p>
+        `,
+        isPhish: true,
+        explanation: "Real Android/Google Play updates come from system settings or the official Play Store, not from a random website link that downloads an APK. This is likely mobile malware."
+      },
+      {
+        brandTag: "[LinkedIn / HR style banner]",
+        from: "HR – CyberSecure Inc. <recruiting@cybersecure-careers.com>",
+        subject: "Immediate Offer – Remote Cybersecurity Internship",
+        body: `
+<p>Hi [Name],</p>
+<p>We found your profile on LinkedIn and believe you’re a strong fit for our <strong>Remote Cybersecurity Internship</strong> starting next month.</p>
+<p>Before we can finalize your offer, we need you to complete a quick <strong>background check and identity verification</strong>:</p>
+<ol>
+  <li>Click the link below</li>
+  <li>Sign in using your <strong>school Google account</strong></li>
+  <li>Upload a photo of your ID and a recent bank statement or pay stub</li>
+</ol>
+<p class="email-link">hxxps://verify-candidates[.]me/google-auth</p>
+<p>This step must be completed within 24 hours to keep your spot.</p>
+        `,
+        isPhish: true,
+        explanation: "Asking for a bank statement and ID through an unknown link is a strong sign of phishing. A legitimate company would use a known background-check service and official domain."
+      },
+      {
+        brandTag: "[District IT logo]",
+        from: "District IT Notifications <no-reply@district-schools.edu>",
+        subject: "Planned Maintenance: Network access limited this weekend",
+        body: `
+<p>Dear staff,</p>
+<p>This is a notification of scheduled maintenance on the district network.</p>
+<ul>
+  <li>Date: Saturday 11:00 PM – Sunday 6:00 AM</li>
+  <li>Impact: Limited access to shared drives and print services</li>
+</ul>
+<p>No action is required from you at this time. Please <strong>do not</strong> share your password with anyone. If you experience issues after the maintenance window, submit a ticket using the normal IT helpdesk portal.</p>
+<p>Thank you,<br/>District IT</p>
+        `,
+        isPhish: false,
+        explanation: "This message does not ask for login info, doesn’t include suspicious links, and reminds you NOT to share your password. It describes maintenance only."
+      },
+      {
+        brandTag: "[Starbucks logo on flyer / QR]",
+        from: "Printed flyer in staff room (QR code)",
+        subject: "FREE Starbucks Gift Card for Teachers Week!",
+        body: `
+<p>Text on flyer:</p>
+<blockquote>
+FREE Starbucks Gift Card for Teachers Week!<br/>
+Scan the QR code with your phone and sign in with your <strong>school email</strong> to claim your $25 card. Limited to the first 50 staff members.<br/><br/>
+Sponsored by: Starbucks Education Rewards Program
+</blockquote>
+<p>QR code opens a login page that looks like your district Google login, but the URL is:</p>
+<p class="email-link">hxxps://staff-giftcards-login[.]info/google</p>
+        `,
+        isPhish: true,
+        explanation: "The QR code leads to a fake login page with a suspicious domain. Physical flyers can still be phishing if they direct you to a fake site that steals credentials."
+      }
+    ];
+
+    const MAX_LEVEL = scenarios.length;
+    const MAX_LIVES = 3;
+
+    // -------------------------------
+    // STATE
+    // -------------------------------
+    let currentIndex = 0;
+    let score = 0;
+    let lives = MAX_LIVES;
+    let locked = false; // prevent double answers
+
+    // -------------------------------
+    // DOM ELEMENTS
+    // -------------------------------
+    const uiLevel = document.getElementById("ui-level");
+    const uiMaxLevel = document.getElementById("ui-max-level");
+    const uiScore = document.getElementById("ui-score");
+    const uiLives = document.getElementById("ui-lives");
+    const uiRank = document.getElementById("ui-rank");
+    const uiLevelTitle = document.getElementById("ui-level-title");
+
+    const uiLogoTag = document.getElementById("ui-logo-tag");
+    const uiFrom = document.getElementById("ui-from");
+    const uiSubject = document.getElementById("ui-subject");
+    const uiBody = document.getElementById("ui-body");
+    const uiFeedback = document.getElementById("ui-feedback");
+
+    const btnPhish = document.getElementById("btn-phish");
+    const btnLegit = document.getElementById("btn-legit");
+    const btnReset = document.getElementById("btn-reset");
+
+    const logMessages = document.getElementById("log-messages");
+
+    const overlayGameOver = document.getElementById("overlay-gameover");
+    const overlayWin = document.getElementById("overlay-win");
+    const gameoverStats = document.getElementById("gameover-stats");
+    const winStats = document.getElementById("win-stats");
+    const btnRestart = document.getElementById("btn-restart");
+    const btnReplay = document.getElementById("btn-replay");
+
+    uiMaxLevel.textContent = MAX_LEVEL.toString();
+
+    // -------------------------------
+    // HELPERS
+    // -------------------------------
+    function rankFromScore(s) {
+      if (s < 400) return "New Recruit";
+      if (s < 900) return "Junior Analyst";
+      if (s < 1500) return "Threat Hunter";
+      if (s < 2200) return "Incident Responder";
+      return "Phishing Slayer";
+    }
+
+    function updateHUD() {
+      uiLevel.textContent = (currentIndex + 1).toString();
+      uiScore.textContent = score.toString();
+      uiLives.textContent = lives.toString();
+      uiRank.textContent = rankFromScore(score);
+    }
+
+    function log(message, type = "info") {
+      const div = document.createElement("div");
+      div.className = "log-entry" + (type === "bad" ? " bad" : "");
+      div.innerHTML = message;
+      logMessages.appendChild(div);
+      logMessages.scrollTop = logMessages.scrollHeight;
+    }
+
+    // -------------------------------
+    // LOAD / RENDER SCENARIO
+    // -------------------------------
+    function loadScenario() {
+      const s = scenarios[currentIndex];
+      uiLevelTitle.textContent = "Level " + (currentIndex + 1) + " – Read the message carefully";
+      uiLogoTag.textContent = s.brandTag;
+      uiFrom.textContent = "From: " + s.from;
+      uiSubject.textContent = "Subject: " + s.subject;
+      uiBody.innerHTML = s.body;
+      uiFeedback.textContent = "";
+      uiFeedback.className = "feedback";
+      locked = false;
+      updateHUD();
+    }
+
+    // -------------------------------
+    // ANSWER HANDLING
+    // -------------------------------
+    function handleAnswer(playerThinksPhish) {
+      if (locked) return;
+      locked = true;
+
+      const s = scenarios[currentIndex];
+      const correct = s.isPhish === playerThinksPhish;
+
+      if (correct) {
+        score += 150;
+        uiFeedback.textContent = "Correct: " + (s.isPhish ? "This IS a phishing attempt." : "This message is legitimate.");
+        uiFeedback.className = "feedback ok";
+        log("<strong>Correct:</strong> " + s.explanation, "info");
+
+        // Move to next scenario or win
+        if (currentIndex === MAX_LEVEL - 1) {
+          showWin();
+        } else {
+          // slight delay before next scenario
+          setTimeout(() => {
+            currentIndex++;
+            loadScenario();
+          }, 900);
+        }
+      } else {
+        lives -= 1;
+        uiFeedback.textContent = "Incorrect.";
+        uiFeedback.className = "feedback bad";
+
+        const expectedText = s.isPhish ? "This was phishing." : "This was actually legitimate.";
+        log("<strong>Incorrect.</strong> " + expectedText + " " + s.explanation, "bad");
+
+        if (lives <= 0) {
+          showGameOver();
+        } else {
+          updateHUD();
+          // allow them to reread, then go next
+          setTimeout(() => {
+            if (currentIndex === MAX_LEVEL - 1) {
+              // last scenario, keep them here until reset or they try again
+              locked = false;
+            } else {
+              currentIndex++;
+              loadScenario();
+            }
+          }, 1100);
+        }
+      }
+    }
+
+    btnPhish.addEventListener("click", () => handleAnswer(true));
+    btnLegit.addEventListener("click", () => handleAnswer(false));
+
+    btnReset.addEventListener("click", () => {
+      resetGame();
+    });
+
+    // -------------------------------
+    // OVERLAYS
+    // -------------------------------
+    function showGameOver() {
+      updateHUD();
+      gameoverStats.innerHTML =
+        "You reached Level <strong>" + (currentIndex + 1) + "</strong> / " + MAX_LEVEL +
+        "<br>Final Score: <strong>" + score + "</strong><br>" +
+        "Rank: <strong>" + rankFromScore(score) + "</strong>";
+      overlayGameOver.classList.remove("hidden");
+    }
+
+    function showWin() {
+      updateHUD();
+      winStats.innerHTML =
+        "All " + MAX_LEVEL + " scenarios completed!<br>" +
+        "Final Score: <strong>" + score + "</strong><br>" +
+        "Rank: <strong>" + rankFromScore(score) + "</strong>";
+      overlayWin.classList.remove("hidden");
+    }
+
+    btnRestart.addEventListener("click", () => {
+      overlayGameOver.classList.add("hidden");
+      resetGame();
+    });
+    btnReplay.addEventListener("click", () => {
+      overlayWin.classList.add("hidden");
+      resetGame();
+    });
+
+    // -------------------------------
+    // RESET / INIT
+    // -------------------------------
+    function resetGame() {
+      currentIndex = 0;
+      score = 0;
+      lives = MAX_LIVES;
+      logMessages.innerHTML = "";
+      log("New phishing simulation started. Decide if each message is phishing or legit.");
+      overlayGameOver.classList.add("hidden");
+      overlayWin.classList.add("hidden");
+      loadScenario();
+    }
+
+    // Initial start
+    resetGame();
+  </script>
+</body>
+</html>
